@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Japanese Quiz · Day 1</title>
+<style>
+  :root {
+    --bg: #faf7f2;
+    --surface: #ffffff;
+    --surface-2: #f3efe7;
+    --ink: #1d1a16;
+    --ink-2: #57534a;
+    --line: #e3ddd2;
+    --accent: #b3372e;
+    --accent-ink: #ffffff;
+    --accent-soft: #f7e8e6;
+    --ok: #1d7a3a;
+    --ok-soft: #e4f2e7;
+    --bad: #b3372e;
+    --bad-soft: #f9e9e7;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17150f;
+      --surface: #232019;
+      --surface-2: #2b2820;
+      --ink: #f2eee4;
+      --ink-2: #b3ac9c;
+      --line: #403b30;
+      --accent: #e0685c;
+      --accent-ink: #1c0f0d;
+      --accent-soft: #3a2320;
+      --ok: #6fce8a;
+      --ok-soft: #1f3226;
+      --bad: #e0685c;
+      --bad-soft: #3a2320;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 20px 16px 64px; }
+  header { padding: 8px 2px 4px; }
+  h1 { font-size: 26px; line-height: 1.3; margin: 0 0 6px; font-weight: 800; letter-spacing: 0.01em; }
+  h1 .day { color: var(--accent); }
+  .meta { color: var(--ink-2); font-size: 14px; margin: 0 0 10px; }
+  .howto {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 15px;
+    margin-bottom: 18px;
+  }
+  .progressbar {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--bg);
+    padding: 10px 0 8px;
+  }
+  .progress-label { font-size: 14px; font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .track { height: 8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; width: 0%; background: var(--accent); transition: width .25s ease; }
+  section.group { margin-top: 26px; }
+  h2.group-title {
+    font-size: 19px; margin: 0 0 12px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--accent);
+    display: inline-block;
+  }
+  .passage {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    font-size: 17px;
+    margin-bottom: 16px;
+  }
+  .passage p { margin: 0; }
+  .q {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .q-head { display: flex; gap: 10px; align-items: baseline; margin-bottom: 10px; }
+  .q-num {
+    flex: none; font-weight: 800; font-size: 14px;
+    background: var(--accent-soft); color: var(--accent);
+    border-radius: 8px; padding: 2px 9px;
+  }
+  .q-text { font-size: 17px; font-weight: 600; }
+  .q-mark { margin-left: auto; flex: none; font-weight: 800; font-size: 15px; }
+  .q-mark.right { color: var(--ok); }
+  .q-mark.wrong { color: var(--bad); }
+  .opts { display: grid; gap: 8px; }
+  .opt {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; text-align: left;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 13px 14px;
+    font-size: 16.5px; color: var(--ink);
+    cursor: pointer; font-family: inherit; line-height: 1.5;
+    min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .opt .letter {
+    flex: none; width: 28px; height: 28px; border-radius: 50%;
+    border: 1.5px solid var(--line);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; color: var(--ink-2);
+  }
+  .opt.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .opt.selected .letter { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .opt.correct { border-color: var(--ok); background: var(--ok-soft); }
+  .opt.correct .letter { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .opt.incorrect { border-color: var(--bad); background: var(--bad-soft); }
+  .opt.incorrect .letter { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .opt:disabled { cursor: default; opacity: 1; }
+  .explain {
+    display: none;
+    margin-top: 12px; padding: 11px 13px;
+    background: var(--surface-2); border-radius: 10px;
+    font-size: 14.5px; color: var(--ink);
+  }
+  .explain .ans { font-weight: 800; }
+  .explain.show { display: block; }
+  .actions { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+  button.main {
+    flex: 1 1 200px;
+    border: none; border-radius: 12px;
+    padding: 16px; font-size: 17px; font-weight: 800;
+    background: var(--accent); color: var(--accent-ink);
+    cursor: pointer; font-family: inherit;
+    min-height: 56px;
+  }
+  button.main:disabled { opacity: .45; cursor: not-allowed; }
+  button.ghost {
+    flex: 0 1 160px;
+    border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 16px; font-size: 16px; font-weight: 700;
+    background: var(--surface); color: var(--ink);
+    cursor: pointer; font-family: inherit;
+    min-height: 56px;
+  }
+  .result {
+    display: none;
+    margin-top: 24px;
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 22px 18px;
+    text-align: center;
+  }
+  .result.show { display: block; }
+  .result .score { font-size: 44px; font-weight: 800; line-height: 1.1; }
+  .result .score small { font-size: 20px; color: var(--ink-2); }
+  .result .band { font-size: 19px; font-weight: 700; margin-top: 8px; }
+  .result .note { font-size: 13.5px; color: var(--ink-2); margin-top: 6px; }
+  .warn { color: var(--bad); font-size: 14px; font-weight: 700; margin-top: 10px; min-height: 1.4em; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Japanese Quiz · <span class="day">Day 1</span></h1>
+    <p class="meta">2026-10-24 · JLPT N1 级别 · 共 20 题</p>
+    <div class="howto">点选每题答案，全部选完后点「提交批改」。建议限时 20 分钟。</div>
+  </header>
+
+  <div class="progressbar">
+    <div class="progress-label"><span>答题进度</span><span id="progressText">已答 0/20</span></div>
+    <div class="track"><div class="fill" id="progressFill"></div></div>
+  </div>
+
+  <main id="quiz"></main>
+
+  <div class="result" id="result">
+    <div class="score"><span id="scoreNum">0</span><small> / 20</small></div>
+    <div class="band" id="bandText"></div>
+    <div class="note">JLPT 级别为粗估，仅供参考。</div>
+  </div>
+
+  <div class="warn" id="warn"></div>
+  <div class="actions">
+    <button class="main" id="submitBtn" type="button">提交批改</button>
+    <button class="ghost" id="resetBtn" type="button">再来一次</button>
+  </div>
+</div>
+
+<script>
+var PASSAGE = "近年、多くの企業が在宅勤務を導入している。在宅勤務には通勤時間がなくなるという利点がある一方、社員同士の何気ない会話から生まれるアイデアが減るという指摘もある。重要なのは、働く場所そのものではなく、どのように情報を共有し、信頼関係を築くかである。場所に縛られない働き方が広がる中で、企業には新しい形のコミュニケーションが求められている。";
+
+var GROUPS = [
+  { title: "文字・語彙", questions: [
+    { q: "彼は会社の「重役」を務めている。重役の読み方はどれか。", opts: ["じゅうえき", "じゅうやく", "おもやく", "ちょうえき"], ans: 1, exp: "重役（じゅうやく）指公司高管、董事。" },
+    { q: "両社は契約を「締結」した。締結の読み方はどれか。", opts: ["ていけつ", "しめけつ", "ていけい", "めいけつ"], ans: 0, exp: "締結（ていけつ）是「缔结（条约、合同）」。" },
+    { q: "彼は曖昧な返事をした。「曖昧」の意味に最も近いものはどれか。", opts: ["はっきりしない", "丁寧な", "素早い", "正確な"], ans: 0, exp: "曖昧（あいまい）= 含糊、不明确。" },
+    { q: "会議では「忌憚」のない意見を聞かせてください。忌憚の意味に最も近いものはどれか。", opts: ["ためらうこと", "遠慮すること", "隠すこと", "誇張すること"], ans: 1, exp: "忌憚（きたん）= 顾忌、客气；忌憚のない = 直言不讳的。" },
+    { q: "彼は仕事が速い上に、___正確だ。", opts: ["まして", "ところで", "なお", "せいぜい"], ans: 2, exp: "なお = 而且、还（追加同类性质）。" },
+    { q: "彼は口が軽い。「口が軽い」の意味はどれか。", opts: ["声が小さい", "秘密を守れない", "食べるのが速い", "よく謝る"], ans: 1, exp: "口が軽い = 嘴不严、守不住秘密。" },
+    { q: "「取り消す」の意味に最も近いものはどれか。", opts: ["延期する", "承認する", "提案する", "キャンセルする"], ans: 3, exp: "取り消す = 取消。" }
+  ]},
+  { title: "文法", questions: [
+    { q: "締め切りが明日___、今夜は徹夜で仕上げるしかない。", opts: ["に先立ち", "とあって", "からには", "にかけて"], ans: 1, exp: "〜とあって = 因为情况特殊（期限在即）。" },
+    { q: "あれほど注意した___、また同じミスをしてしまった。", opts: ["あげく", "そばから", "わりに", "ものの"], ans: 2, exp: "〜わりに = 与…的程度不相称（尽管提醒到那份上）。" },
+    { q: "この計画は、社長の決断___進めることはできない。", opts: ["なしには", "ながらも", "ところで", "ずくめ"], ans: 0, exp: "〜なしには〜できない = 没有…就无法…。" },
+    { q: "行く___行かない___、早く返事をください。", opts: ["か / か", "と / と", "や / や", "も / も"], ans: 0, exp: "〜か〜か = 无论…还是…（二选一未定）。" },
+    { q: "約束した___、必ず守らなければならない。", opts: ["以上は", "以来", "一方で", "反面"], ans: 0, exp: "〜以上は = 既然…就必须…。" },
+    { q: "そのニュースを聞いて、驚か___。", opts: ["ざるを得なかった", "ずにはいられなかった", "ないではなかった", "かねなかった"], ans: 1, exp: "驚かずにはいられない = 不禁吃惊、忍不住吃惊。" },
+    { q: "彼が来___、すぐに出発しましょう。", opts: ["次第", "ながら", "ばかり", "とたん"], ans: 0, exp: "〜次第 = 一…就…（一到就立即）。" }
+  ]},
+  { title: "読解", passage: PASSAGE, questions: [
+    { q: "この文章で筆者が最も言いたいことは何か。", opts: ["在宅勤務をやめるべきだ", "場所そのものより、情報共有と信頼関係の築き方が重要だ", "通勤時間は完全に無駄だ", "社員同士の会話を増やすべきだ"], ans: 1, exp: "文中明确说「重要なのは、働く場所そのものではなく、どのように情報を共有し、信頼関係を築くかである」。" },
+    { q: "在宅勤務の利点として挙げられているのは何か。", opts: ["アイデアが増えること", "情報共有が簡単になること", "通勤時間がなくなること", "信頼関係が自然に築けること"], ans: 2, exp: "文中说远程办公的优点是「通勤時間がなくなる」。" },
+    { q: "在宅勤務について指摘されている問題は何か。", opts: ["社員の給料が下がること", "仕事の進みが遅くなること", "会社の費用が増えること", "何気ない会話から生まれるアイデアが減ること"], ans: 3, exp: "文中指出的问题是「社員同士の何気ない会話から生まれるアイデアが減る」。" },
+    { q: "「場所に縛られない働き方」とはどういう意味か。", opts: ["会社でだけ働くこと", "決まった場所でなくても働けること", "通勤しないこと", "一人で働くこと"], ans: 1, exp: "「場所に縛られない」= 不受地点束缚，即不在固定场所也能工作。" },
+    { q: "この文章のタイトルとして最も適切なものはどれか。", opts: ["在宅勤務の歴史", "通勤時間の使い方", "働く場所とコミュニケーション", "企業の費用削減"], ans: 2, exp: "全文围绕工作场所的变化与沟通方式展开，故此标题最贴切。" },
+    { q: "文章の最後で「求められている」のは何か。", opts: ["企業にとっての新しい形のコミュニケーション", "社員の出社", "政府の新しい法律", "客の理解"], ans: 0, exp: "文末说「企業には新しい形のコミュニケーションが求められている」。" }
+  ]}
+];
+
+var LETTERS = ["A", "B", "C", "D"];
+var total = 0;
+GROUPS.forEach(function(g){ total += g.questions.length; });
+
+var answers = {}; // "gi-qi" -> selected index
+var submitted = false;
+
+var quizEl = document.getElementById("quiz");
+var progressText = document.getElementById("progressText");
+var progressFill = document.getElementById("progressFill");
+var resultEl = document.getElementById("result");
+var scoreNum = document.getElementById("scoreNum");
+var bandText = document.getElementById("bandText");
+var warnEl = document.getElementById("warn");
+var submitBtn = document.getElementById("submitBtn");
+var resetBtn = document.getElementById("resetBtn");
+
+function key(gi, qi) { return gi + "-" + qi; }
+
+function render() {
+  quizEl.innerHTML = "";
+  var n = 0;
+  GROUPS.forEach(function(group, gi) {
+    var sec = document.createElement("section");
+    sec.className = "group";
+    var h = document.createElement("h2");
+    h.className = "group-title";
+    h.textContent = group.title;
+    sec.appendChild(h);
+    if (group.passage) {
+      var p = document.createElement("div");
+      p.className = "passage";
+      var pp = document.createElement("p");
+      pp.textContent = group.passage;
+      p.appendChild(pp);
+      sec.appendChild(p);
+    }
+    group.questions.forEach(function(item, qi) {
+      n++;
+      var card = document.createElement("div");
+      card.className = "q";
+      card.id = "card-" + key(gi, qi);
+      var head = document.createElement("div");
+      head.className = "q-head";
+      var num = document.createElement("span");
+      num.className = "q-num";
+      num.textContent = "Q" + n;
+      var txt = document.createElement("span");
+      txt.className = "q-text";
+      txt.textContent = item.q;
+      var mark = document.createElement("span");
+      mark.className = "q-mark";
+      mark.id = "mark-" + key(gi, qi);
+      head.appendChild(num);
+      head.appendChild(txt);
+      head.appendChild(mark);
+      card.appendChild(head);
+      var opts = document.createElement("div");
+      opts.className = "opts";
+      item.opts.forEach(function(optText, oi) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "opt";
+        b.id = "opt-" + key(gi, qi) + "-" + oi;
+        var letter = document.createElement("span");
+        letter.className = "letter";
+        letter.textContent = LETTERS[oi];
+        var label = document.createElement("span");
+        label.textContent = optText;
+        b.appendChild(letter);
+        b.appendChild(label);
+        b.addEventListener("click", function() { select(gi, qi, oi); });
+        opts.appendChild(b);
+      });
+      card.appendChild(opts);
+      var exp = document.createElement("div");
+      exp.className = "explain";
+      exp.id = "exp-" + key(gi, qi);
+      exp.innerHTML = "";
+      var ansSpan = document.createElement("span");
+      ansSpan.className = "ans";
+      ansSpan.textContent = "正确答案：" + LETTERS[item.ans] + "。";
+      exp.appendChild(ansSpan);
+      exp.appendChild(document.createTextNode(item.exp));
+      card.appendChild(exp);
+      sec.appendChild(card);
+    });
+    quizEl.appendChild(sec);
+  });
+  updateProgress();
+}
+
+function select(gi, qi, oi) {
+  if (submitted) return;
+  answers[key(gi, qi)] = oi;
+  var item = GROUPS[gi].questions[qi];
+  for (var i = 0; i < item.opts.length; i++) {
+    var el = document.getElementById("opt-" + key(gi, qi) + "-" + i);
+    if (el) el.classList.toggle("selected", i === oi);
+  }
+  warnEl.textContent = "";
+  updateProgress();
+}
+
+function answeredCount() {
+  return Object.keys(answers).length;
+}
+
+function updateProgress() {
+  var c = answeredCount();
+  progressText.textContent = "已答 " + c + "/" + total;
+  progressFill.style.width = (total ? (c / total * 100) : 0) + "%";
+}
+
+function bandFor(score) {
+  if (score >= 18) return "≈ N1 高分段";
+  if (score >= 15) return "≈ N1 合格圈";
+  if (score >= 12) return "≈ N2 上位～N1 入门";
+  if (score >= 9) return "≈ N2";
+  return "≈ N3 或以下";
+}
+
+function submit() {
+  if (submitted) return;
+  var c = answeredCount();
+  if (c < total) {
+    warnEl.textContent = "还有 " + (total - c) + " 题未答，全部选完后才能提交批改。";
+    return;
+  }
+  submitted = true;
+  var score = 0;
+  GROUPS.forEach(function(group, gi) {
+    group.questions.forEach(function(item, qi) {
+      var sel = answers[key(gi, qi)];
+      var right = sel === item.ans;
+      if (right) score++;
+      var mark = document.getElementById("mark-" + key(gi, qi));
+      mark.textContent = right ? "✓ 正确" : "✗ 错误";
+      mark.className = "q-mark " + (right ? "right" : "wrong");
+      for (var i = 0; i < item.opts.length; i++) {
+        var el = document.getElementById("opt-" + key(gi, qi) + "-" + i);
+        el.disabled = true;
+        el.classList.remove("selected");
+        if (i === item.ans) el.classList.add("correct");
+        else if (i === sel) el.classList.add("incorrect");
+      }
+      document.getElementById("exp-" + key(gi, qi)).classList.add("show");
+    });
+  });
+  scoreNum.textContent = score;
+  bandText.textContent = "JLPT 粗估：" + bandFor(score);
+  resultEl.classList.add("show");
+  submitBtn.disabled = true;
+  resultEl.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function reset() {
+  answers = {};
+  submitted = false;
+  submitBtn.disabled = false;
+  resultEl.classList.remove("show");
+  warnEl.textContent = "";
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+submitBtn.addEventListener("click", submit);
+resetBtn.addEventListener("click", reset);
+render();
+</script>
+</body>
+</html>
